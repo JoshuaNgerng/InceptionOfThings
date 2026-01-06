@@ -1,0 +1,216 @@
+install vagrant
+
+ref here 
+
+https://developer.hashicorp.com/vagrant/docs/installation
+
+Set-ExecutionPolicy Bypass -Scope Process -Force; `
+[System.Net.ServicePointManager]::SecurityProtocol = `
+[System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+
+vagrant up process
+
+Here's a breakdown of what happens when you run vagrant up:
+
+1. Read the Vagrantfile
+
+The first step Vagrant does is read your Vagrantfile. This is a configuration file written in Ruby that defines everything about your virtual machine, including:
+
+The base box (an image for the VM, like Ubuntu or CentOS).
+
+The provider (like VirtualBox, VMware, etc.).
+
+Network settings, such as port forwarding or static IPs.
+
+Provisioning scripts (like shell scripts, Ansible, Chef, etc.).
+
+Shared folders or volumes.
+
+Any VM-specific settings (like CPU, memory, etc.).
+
+2. Check if the Box Exists Locally
+
+Vagrant will check if the box (the base OS image for the VM) you referenced in the Vagrantfile is already downloaded locally. If it's not, it will download the base box from Vagrant Cloud (or another source if specified) to your local machine.
+
+3. Create the Virtual Machine
+
+After the base box is downloaded (or found locally), Vagrant communicates with the chosen provider (e.g., VirtualBox) to create a new VM instance. It uses the configuration specified in the Vagrantfile to customize things like the VM's memory, CPU, and network settings. The VM is created, but it’s still in a powered-off state at this point.
+
+4. Start the Virtual Machine
+
+Vagrant then starts the virtual machine using the provider's management tools (like VBoxManage for VirtualBox). This boots up the VM and makes it ready to be used.
+
+5. Run Provisioning (if configured)
+
+After the VM is up and running, provisioning happens. Provisioning is a way to automatically set up your VM with things like software packages, configuration files, or system settings. Vagrant can handle provisioning in several ways:
+
+Shell scripts: Run bash commands inside the VM.
+
+Ansible, Chef, Puppet: Use configuration management tools to set up and manage the system.
+
+File provisioning: Copy files into the VM.
+
+Configuration scripts: You can write Ruby or other scripts to configure your VM.
+
+Provisioning is typically done after the VM boots, but it can be customized to run before the machine starts or at other times as well (e.g., when the VM is created, or manually triggered by running vagrant provision).
+
+6. Set Up Shared Folders
+
+If you've configured shared folders in your Vagrantfile, this step sets them up. These allow you to share files between your host machine and the VM. For example, this could be useful for keeping your codebase in sync between the two.
+
+7. Networking Setup
+
+Vagrant will configure the VM’s networking settings based on what you've defined in the Vagrantfile. This could include:
+
+Private networking: Assigning a static IP to the VM.
+
+Port forwarding: Making ports on the VM accessible from your host machine (e.g., forwarding port 80 to run a web server inside the VM).
+
+Public networking: Connecting the VM to a bridged network so it can access your physical network.
+
+8. VM State Check
+
+If the VM is already running, running vagrant up will do nothing unless there are changes in the configuration. In case the VM is stopped, vagrant up will start it again.
+
+9. Start or Connect to the VM (optional)
+
+Once the VM is up, Vagrant provides you with a few options:
+
+You can SSH into the VM using vagrant ssh.
+
+If you want to access the VM via GUI (in case of VirtualBox), you can start the VM in GUI mode.
+
+10. Post-Startup Actions
+
+If there are any post-up actions defined in the Vagrantfile (for example, running a script after boot), those will be executed.
+
+Vagrant Commands Summary:
+
+Here’s a summary of the important vagrant commands that may come into play during the process:
+
+vagrant up: Boots up the VM, provisions, and applies changes if any.
+
+vagrant halt: Shuts down the VM.
+
+vagrant destroy: Deletes the VM completely, freeing up the resources.
+
+vagrant suspend: Pauses the VM, saving the current state.
+
+vagrant reload: Restarts the VM and re-applies changes made to the Vagrantfile.
+
+vagrant ssh: SSH into the running VM.
+
+Configuring Provisioning
+
+You can configure provisioning to happen at different times by setting options in your Vagrantfile. For example:
+
+Run provisioning when the machine is created:
+
+config.vm.provision "shell", inline: "echo 'Hello World'"
+
+
+Run provisioning manually after the VM is up:
+
+vagrant provision
+
+
+Run provisioning only on vagrant up if the configuration has changed:
+
+config.vm.provision "shell", inline: "echo 'Hello World'", run: "always"
+
+
+In this way, you can control when provisioning happens, allowing you to fine-tune the process based on your project’s needs.
+
+Summary of Key Points:
+
+vagrant up involves reading the Vagrantfile, setting up the VM, provisioning it (if needed), and configuring shared folders, networking, and other settings.
+
+Provisioning is an optional but powerful feature that runs scripts to automatically configure your VM.
+
+Network and shared folder configurations help in syncing and connecting your VM to the host system and network.
+
+
+
+🧰 What is a provisioner?
+
+A provisioner is a tool Vagrant uses to configure machines.
+
+Vagrant supports many provisioners:
+
+Provisioner	Use case
+shell	Run Bash scripts
+ansible	Configuration management
+chef	Infrastructure automation
+puppet	Declarative system config
+docker	Run containers
+
+The shell provisioner runs:
+
+Bash scripts
+
+Inside the VM
+
+As root by default
+
+Provisioners run in the order they appear
+
+
+
+📂 How does path: work?
+path: "scripts/common.sh"
+
+What happens internally:
+
+Vagrant reads the script from your host
+
+Copies it to the VM (temporary location)
+
+Executes it inside the VM
+
+Deletes the temporary copy
+
+📌 The script runs inside the VM, not on Windows.
+
+sync folders
+default on
+A synced folder is a directory that is shared between:
+
+Your host machine (Windows)
+
+Your virtual machine (Ubuntu)
+
+expla
+# On Windows
+edit index.html
+
+# Inside VM
+cat /vagrant/index.html
+
+⚙️ How synced folders work (under the hood)
+
+On Windows + VirtualBox:
+
+VirtualBox creates a shared folder
+
+The VM mounts it at /vagrant
+
+File changes are synced in real time
+
+Ownership and permissions are emulated
+
+This emulation is where problems start
+
+📌 Common synced folder types
+
+| Type         | Used when          |
+| ------------ | ------------------ |
+| `virtualbox` | Default on Windows |
+| `rsync`      | One-way sync       |
+| `nfs`        | Linux/macOS only   |
+| `smb`        | Windows shares     |
+
+example config 
+
+config.vm.synced_folder ".", "/vagrant"
