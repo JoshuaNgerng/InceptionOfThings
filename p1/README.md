@@ -91,6 +91,10 @@ rm -rf .vagrant/machines/aliceS/*/action_lock # force removing the lock , dont r
 other force reset 
 rm -rf .vagrant/
 vagrant up
+or
+vagrant destroy -f   # permanently deletes VM
+
+
 
 ✅ Recommended order (quick checklist)
 
