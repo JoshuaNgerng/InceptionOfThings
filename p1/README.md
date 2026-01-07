@@ -73,3 +73,32 @@ High I/O workloads
 
 “Vagrant synced folders allow sharing files between the host and the virtual machine. However, VirtualBox shared folders can cause permission and filesystem issues, especially with Kubernetes. Therefore, we disable the default synced folder to ensure system stability and follow best practices.”
 
+troubleshoot
+
+vagrant status
+vagrant halt / suspend # shutdown / sleep
+
+sometimes ruby or some vagrant process is running in background and locking your vm instance
+
+ps aux | grep -E "vagrant|ruby"
+
+if its a problem may need to kill the process
+
+kill -9 <PID>
+
+rm -rf .vagrant/machines/aliceS/*/action_lock # force removing the lock , dont recommended
+
+other force reset 
+rm -rf .vagrant/
+vagrant up
+
+✅ Recommended order (quick checklist)
+
+Kill stuck vagrant / ruby processes
+
+Remove action_lock file
+
+Power off via VirtualBox / VMware
+
+Remove .vagrant/ as last resort
+

@@ -3,12 +3,31 @@ install vagrant
 ref here 
 
 https://developer.hashicorp.com/vagrant/docs/installation
+get binary and manually make directory for it and set env
+
+
+use choco
+rmb to run as admin
 
 Set-ExecutionPolicy Bypass -Scope Process -Force; `
 [System.Net.ServicePointManager]::SecurityProtocol = `
 [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+ # install choco
+choco install vagrant -y # install Vagrant
 
+vagrant --version
+
+to test whether vagrant is install properly?
+
+mkdir vagrant-test
+cd vagrant-test
+vagrant init hashicorp/bionic64
+vagrant up
+
+choco install virtualbox -y
+
+install virtualbox provider
 
 vagrant up process
 
