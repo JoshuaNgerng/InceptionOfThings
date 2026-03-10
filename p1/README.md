@@ -1,108 +1,227 @@
-files
-common.sh
+# Project Overview
 
-Shared setup
+This project sets up a 2-node Kubernetes cluster using K3s and Vagrant.
 
-OS-level configuration
+The infrastructure consists of
 
-Same for all nodes
+| Machine | Hostname | Role          | IP             |
+| ------- | -------- | ------------- | -------------- |
+| Server  | userS    | Control Plane | 192.168.56.110 |
+| Worker  | userSW   | Worker Node   | 192.168.56.111 |
 
-install_k3s_server.sh
+The Server node runs the K3s control-plane, while the Worker node runs the K3s agent.
 
-Control-plane logic
-
-kubectl installation
-
-Token generation
-
-install_k3s_agent.sh
-
-Worker-specific logic
-
-Join cluster using token
-
-✔ Cleaner
-✔ Easier to debug
-✔ Easier to scale later
+The cluster is created automatically using Vagrant provisioning scripts.
 
 
-🚨 Problems with synced folders in Kubernetes
+## Requirements
 
-Kubernetes (and K3s) expects:
+Before running the project, install:
 
-Correct Linux permissions
+Vagrant
 
-Native filesystem behavior
+VirtualBox
 
-Inotify support (file watching)
+Check installation:
 
-VirtualBox shared folders have issues:
+```
+vagrant --version
+```
 
-❌ Permission mismatches
-❌ File locking problems
-❌ Slow I/O
-❌ Issues with container volumes
+```
+virtualbox --help
+```
 
-This can cause:
+## Project Structure
 
-Pods failing to start
+```
+.
+├── Vagrantfile
+├── README.md
+└── scripts
+    ├── install_server.sh
+    └── install_worker.sh
+```
 
-Volume mount errors
+Vagrantfile → defines the virtual machines
 
-Weird crashes
+install_server.sh → installs K3s server
 
-🧩 Bonus: When SHOULD you use synced folders?
+install_worker.sh → installs K3s agent
 
-Use them for:
+## VM Specifications
 
-Web development
+Each VM is configured with minimal resources:
 
-Code editing
+| Resource | Value        |
+| -------- | ------------ |
+| CPU      | 1            |
+| RAM      | 2048 MB      |
+| OS       | Ubuntu 22.04 |
 
-Logs
 
-Non-Kubernetes projects
+Network configuration:
 
-Avoid them for:
+| Node   | IP             |
+| ------ | -------------- |
+| Server | 192.168.56.110 |
+| Worker | 192.168.56.111 |
 
-Kubernetes
 
-Databases
+## Starting the Cluster
 
-High I/O workloads
+From the project directory run:
 
-“Vagrant synced folders allow sharing files between the host and the virtual machine. However, VirtualBox shared folders can cause permission and filesystem issues, especially with Kubernetes. Therefore, we disable the default synced folder to ensure system stability and follow best practices.”
-
-troubleshoot
-
-vagrant status
-vagrant halt / suspend # shutdown / sleep
-
-sometimes ruby or some vagrant process is running in background and locking your vm instance
-
-ps aux | grep -E "vagrant|ruby"
-
-if its a problem may need to kill the process
-
-kill -9 <PID>
-
-rm -rf .vagrant/machines/aliceS/*/action_lock # force removing the lock , dont recommended
-
-other force reset 
-rm -rf .vagrant/
+```
 vagrant up
-or
-vagrant destroy -f   # permanently deletes VM
+```
 
+This will:
 
+1) Create both virtual machines
 
-✅ Recommended order (quick checklist)
+2) Install K3s server on userS
 
-Kill stuck vagrant / ruby processes
+3) Install K3s agent on userSW
 
-Remove action_lock file
+4) Join the worker to the cluster automatically
 
-Power off via VirtualBox / VMware
+## Connecting to the Machines
 
-Remove .vagrant/ as last resort
+Connect using SSH:
 
+Server:
+
+```
+vagrant ssh userS
+```
+
+Worker:
+
+```
+vagrant ssh userSW
+```
+
+No password is required.
+
+## Verifying the Cluster
+
+All Kubernetes commands are executed from the Server node.
+
+### Check nodes
+
+```
+kubectl get nodes
+```
+
+|NAME   |  STATUS |  ROLES         | AGE   |  VERSION |
+| ----  | ------- | -------------- | ------| -------- |
+|users  |  Ready  |  control-plane |       |          |
+|usersw |  Ready  |  <none>        |       |          |
+
+### Detailed node information
+
+```
+kubectl get nodes -o wide
+```
+
+This shows:
+
+- node IP
+
+- container runtime
+
+- Kubernetes version
+
+### Check system pods
+
+```
+kubectl get pods -A
+```
+
+Important system pods should be Running, for example:
+
+- coredns
+
+- local-path-provisioner
+
+- metrics-server
+
+- traefik
+
+### Cluster information
+
+```
+kubectl cluster-info
+```
+
+Displays the Kubernetes control plane endpoints.
+
+## Checking the Server Node
+
+On userS verify that the K3s service is running:
+
+```
+sudo systemctl status k3s
+```
+View logs:
+```
+sudo journalctl -u k3s
+```
+
+## Checking the Worker Node
+
+On userSW verify the agent service:
+
+```
+sudo systemctl status k3s-agent
+```
+
+View logs:
+```
+sudo journalctl -u k3s-agent
+```
+
+## Stopping the Cluster
+
+Stop the virtual machines:
+
+```
+vagrant halt
+```
+
+Destroy the cluster:
+
+```
+vagrant destroy
+```
+
+## Network Verification
+
+Check IP configuration on both machines:
+
+```
+ip a
+```
+
+Expected IPs:
+
+Server:
+
+```
+192.168.56.110
+```
+
+Worker:
+
+```
+192.168.56.111
+```
+
+## Notes
+
+- kubectl is configured only on the Server node
+
+- The Worker node runs k3s-agent and does not host the API server
+
+- All cluster management commands must be executed on userS
