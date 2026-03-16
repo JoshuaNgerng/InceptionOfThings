@@ -142,6 +142,8 @@ Add:
 192.168.56.110 test.com
 ```
 
+*add another stuff for linux vm if diff 
+
 ---
 
 ## Windows
@@ -154,7 +156,6 @@ C:\Windows\System32\drivers\etc\hosts
 
 Add the same entries.
 
-*add another stuff for linux vm
 
 ---
 
