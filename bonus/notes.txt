@@ -1,0 +1,2 @@
+making a kubclt with pvc (postgres), redis, and service layer
+add ingress layer later and test port forwarding with vm 
