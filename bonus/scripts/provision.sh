@@ -29,18 +29,19 @@ echo "Creating namespace..."
 # 1. Namespace (already done)
 kubectl create namespace apps || true
 
-# 2. Storage first
-kubectl apply -f /vagrant/configs/postgres-pvc.yaml
-
-# 3. Config (if using)
+# 2. Config (if using)
 kubectl apply -f /vagrant/configs/configmap.yaml
-kubectl apply -f /vagrant/configs/secret.yaml
+# kubectl apply -f /vagrant/configs/secret.yaml
 
-# 4. Databases / cache
-kubectl apply -f /vagrant/configs/postgres-deployment.yaml
-kubectl wait --for=condition=available deployment/postgres --timeout=120s
+
+# 3. Postgres (StatefulSet)
+kubectl apply -f /vagrant/configs/postgres-service.yaml
+kubectl apply -f /vagrant/configs/postgres-statefulset.yaml
+kubectl rollout status statefulset/postgres -n apps --timeout=120s
+
+# 4. Redis 
 kubectl apply -f /vagrant/configs/redis-deployment.yaml
-kubectl wait --for=condition=available deployment/redis --timeout=120s
+kubectl wait --for=condition=available deployment/redis -n apps --timeout=120s
 
 # 5. Services (so apps can connect)
 kubectl apply -f /vagrant/configs/services.yaml

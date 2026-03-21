@@ -1,0 +1,11 @@
+apiVersion: v1 # not use since statefulset have its own pvc per pod
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: apps
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
