@@ -9,6 +9,7 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
 echo "Create cluster for bonus"
 
+# 1. Make cluster for bonus
 k3d cluster create bonus -p "8000:80@loadbalancer"
 kubectl config use-context bonus
 
