@@ -57,6 +57,7 @@ echo "Deployment finished."
 
 echo "Cluster status:"
 kubectl get nodes
+kubectl config use-context bonus
 
 echo "Services:"
 kubectl get svc -n apps
