@@ -30,7 +30,7 @@ echo "Initalizing server to give token"
 cp /var/lib/rancher/k3s/server/node-token /vagrant/token
 chmod +r /vagrant/token
 sudo cp /vagrant/configs/python_server.service /etc/systemd/system/simple-http.service
-sudo chmod +r 
+sudo chmod +r /etc/systemd/system/simple-http.service
 sudo systemctl daemon-reload
 sudo systemctl enable simple-http
 sudo systemctl start simple-http
