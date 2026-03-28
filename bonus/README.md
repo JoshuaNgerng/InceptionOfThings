@@ -1,6 +1,6 @@
-# 🚀 GitLab on Kubernetes with Vagrant + K3s
+# 🚀 GitLab on Kubernetes (K3s)
 
-This project provisions a local Kubernetes cluster using Vagrant + K3s, and deploys a self-hosted GitLab instance with supporting components:
+This project provisions a local Kubernetes cluster using K3s, and deploys a self-hosted GitLab instance with supporting components:
 
 - PostgreSQL (StatefulSet)
 - Redis (Deployment)
@@ -10,9 +10,8 @@ This project provisions a local Kubernetes cluster using Vagrant + K3s, and depl
 
 ## 🧱 Architecture Overview
 
-The environment is fully automated via Vagrant and consists of:
+The environment is fully automated and consists of:
 
-- Virtual Machine (Ubuntu Jammy)
 - K3s Kubernetes cluster
 - Applications deployed via kubectl manifests
   
@@ -31,19 +30,11 @@ The environment is fully automated via Vagrant and consists of:
   - Kubernetes Services for internal communication
   - Ingress handled by K3s default ingress controller (Traefik)
 
-## ⚙️ Prerequisites
-
-*Install:*
-
-- Vagrant
-- VirtualBox
-- kubectl (optional for host access)
 
 ## 📦 Project Structure
 
 ```
 .
-├── Vagrantfile
 ├── scripts/
 │   └── provision.sh
 ├── configs/
@@ -59,22 +50,12 @@ The environment is fully automated via Vagrant and consists of:
 
 ## 🚀 Setup Instructions
 
-### 1. Start the environment vagrant up
+### 1. Start the k3s server
 
-    This will:
+*at the root (bonus) directory*
+*Run scripts/startup.sh*
 
-    - Provision the VM
-    - Install K3s
-    - Deploy Kubernetes resources automatically
-    - Set up GitLab stack
-
-### 2. Access the VM
-
-```
-vagrant ssh
-```
-
-Inside the VM:
+### 2. Verify server status
 
 ```
 kubectl get nodes
@@ -142,16 +123,9 @@ kubectl get ingress -n apps
 Here’s a simple high-level diagram of your setup:
 
 ```
-                    ┌──────────────────────────────┐
-                    │          Host Machine        │
-                    │                              │
-                    │  http://localhost:8080       │
-                    └──────────────┬───────────────┘
-                                   │ (Vagrant port forward, optional)
-                                   ▼
 
         ┌──────────────────────────────────────────────┐
-        │                Vagrant VM                    │
+        │                VM or Host                    │
         │            (Ubuntu + K3s Cluster)            │
         │                                              │
         │   Private IP: 192.168.56.110                 │
@@ -260,10 +234,38 @@ kubectl describe pod <pod-name> -n apps
 
 ## 🧹 Tear Down
 
-To destroy the environment:
+To scale down database
 ```
-vagrant destroy -f
+kubectl scale statefulset <postgres-statefulset-name> --replicas=0 -n <namespace>
 ```
+
+To scale back up
+```
+kubectl scale statefulset <postgres-statefulset-name> --replicas=1 -n <namespace>
+```
+
+To pause server without removing data
+
+on server side
+```
+sudo systemctl stop k3s
+```
+if on worker side
+```
+sudo systemctl stop k3s-agent
+```
+
+To resume server
+```
+sudo systemctl start k3s
+```
+
+To delete all database
+```
+kubectl get pvc --all-namespaces
+kubectl delete pvc <pvc-name> -n <namespace>
+```
+
 
 ## 🧪 Troubleshooting Guide
 ### 🔍 1. Pods stuck in Pending
@@ -391,24 +393,6 @@ Common causes:
 - Misconfigured secrets/configmaps
 - Application startup failure
 
-### 🔍 8. VM cannot access GitLab
-
-Check:
-
-- Is Vagrant running?
-- Is IP reachable?
-```
-ping 192.168.56.110
-```
-
-Fix:
-
-- Ensure VirtualBox network is set to private_network
-- Re-run:
-```
-vagrant reload
-```
-
 ### 🧠 Debugging Workflow (Recommended)
 
 When something fails:
@@ -438,7 +422,6 @@ kubectl get ingress -n apps
 
 - This project demonstrates:
 
-    - Infrastructure automation with Vagrant
     - Kubernetes cluster provisioning using K3s
     - Stateful workloads using StatefulSets
     - Service discovery and networking in Kubernetes

@@ -19,7 +19,7 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
 # Wait until node is ready
 until kubectl get node >/dev/null 2>&1; do
-  echo "Waiting for Kubernetes API..."
+  echo "Waiting for Kubernetes API Server..."
   sleep 5
 done
 
@@ -30,27 +30,28 @@ echo "Creating namespace..."
 kubectl create namespace apps || true
 
 # 2. Config (if using)
-kubectl apply -f /vagrant/configs/configmap.yaml
+kubectl apply -f ./configs/configmap.yaml
+# if have secret
 # kubectl apply -f /vagrant/configs/secret.yaml
 
 
 # 3. Postgres (StatefulSet)
-kubectl apply -f /vagrant/configs/postgres-service.yaml
-kubectl apply -f /vagrant/configs/postgres-statefulset.yaml
+kubectl apply -f ./configs/postgres-service.yaml
+kubectl apply -f ./configs/postgres-statefulset.yaml
 kubectl rollout status statefulset/postgres -n apps --timeout=120s
 
 # 4. Redis 
-kubectl apply -f /vagrant/configs/redis-deployment.yaml
+kubectl apply -f ./configs/redis-deployment.yaml
 kubectl wait --for=condition=available deployment/redis -n apps --timeout=120s
 
 # 5. Services (so apps can connect)
-kubectl apply -f /vagrant/configs/services.yaml
+kubectl apply -f ./configs/services.yaml
 
 # 6. Application LAST
-kubectl apply -f /vagrant/configs/gitlab-deployment.yaml
+kubectl apply -f ./configs/gitlab-deployment.yaml
 
 # 7. Ingress (optional, after service works)
-kubectl apply -f /vagrant/configs/ingress.yaml
+kubectl apply -f ./configs/ingress.yaml
 
 echo "Deployment finished."
 
