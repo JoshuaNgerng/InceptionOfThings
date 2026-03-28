@@ -1,0 +1,12 @@
+[Unit]
+Description=Simple Python HTTP Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -m http.server 8000
+WorkingDirectory=/home/vagrant
+Restart=always
+User=vagrant
+
+[Install]
+WantedBy=multi-user.target

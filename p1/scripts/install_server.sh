@@ -28,6 +28,9 @@ echo "Server setup complete"
 # Serve token for worker with http server
 echo "Initalizing server to give token"
 cp /var/lib/rancher/k3s/server/node-token /vagrant/token
-cd /vagrant
-chmod +r token
-python3 -m http.server 80
+chmod +r /vagrant/token
+cp /vagrant/configs/python_server.service /etc/systemd/system/simple-http.service
+chmod +r /etc/systemd/system/simple-http.service
+sudo systemctl daemon-reload
+sudo systemctl enable simple-http
+sudo systemctl start simple-http
