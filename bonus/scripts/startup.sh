@@ -17,6 +17,7 @@ echo "K3d is ready."
 
 echo "Create cluster for bonus"
 
+k3d cluster create bonus -p "80:8000@loadbalancer"
 kubectl config use-context bonus
 
 echo "Creating namespace..."

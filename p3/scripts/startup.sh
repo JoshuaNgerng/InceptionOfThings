@@ -5,12 +5,6 @@ set -e
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 # $(k3d kubeconfig write mycluster)
 
-# Wait until node is ready
-until kubectl get node >/dev/null 2>&1; do
-  echo "Waiting for Kubernetes API Server..."
-  sleep 5
-done
-
 echo "K3d is ready."
 
 echo "Create cluster for p3"
