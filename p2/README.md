@@ -139,10 +139,11 @@ Add:
 ```
 192.168.56.110 app1.com
 192.168.56.110 app2.com
+192.168.56.110 app3.com
 192.168.56.110 test.com
 ```
 
-*add another stuff for linux vm if diff 
+*add another stuff for linux vm if diff
 
 ---
 
@@ -154,7 +155,7 @@ Edit:
 C:\Windows\System32\drivers\etc\hosts
 ```
 
-Add the same entries.
+Add the same entries but use the IP of the host VM.
 
 
 ---

@@ -1,12 +1,15 @@
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "ubuntu/jammy64"
+  config.vm.box = "generic/debian12"
+  config.vm.box_architecture = "amd64"
+  config.vm.box_check_update = false
 
   # config.vm.network "private_network", ip: "192.168.56.110"
 
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "2048"
-    vb.cpus = 2
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.memory = "2048"
+    libvirt.cpus = 2
   end
 
   # Sync project directory
@@ -15,6 +18,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "userS" do |server|
     server.vm.hostname = "userS"
     server.vm.network "private_network", ip: "192.168.56.110"
+    server.vm.network :forwarded_port, guest: 80, host: 8081, host_ip: "0.0.0.0"
     server.vm.provision "shell", path: "scripts/provision.sh", privileged: true
   end
 
