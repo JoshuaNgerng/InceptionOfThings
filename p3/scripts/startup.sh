@@ -5,8 +5,6 @@ set -e
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 # $(k3d kubeconfig write mycluster)
 
-echo "K3d is ready."
-
 echo "Create cluster for p3"
 
 k3d cluster create p3 -p "8888:8888@loadbalancer" -p "8080:80@loadbalancer"
