@@ -1,16 +1,20 @@
 #!/bin/bash
 
 apt-get update
-apt-get install -y curl
+apt-get install -y curl wget
 
 echo "Waiting for server token..."
 
-while [ ! -f /vagrant/token ]; do
-  echo "Token not ready yet"
-  sleep 5
+URL="http://192.168.56.110:8000"
+
+until curl -s "$URL" > /dev/null; do
+  echo "Waiting for token server..."
+  sleep 2
 done
 
-TOKEN=$(cat /vagrant/token)
+TOKEN=$(wget "$URL/token")
+
+cat $TOKEN
 
 echo "Waiting for Kubernetes API..."
 

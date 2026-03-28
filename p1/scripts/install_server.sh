@@ -22,7 +22,12 @@ mkdir -p /home/vagrant/.kube
 cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
 chown -R vagrant:vagrant /home/vagrant/.kube
 
-# Save node token for worker
-cp /var/lib/rancher/k3s/server/node-token /vagrant/token
 
 echo "Server setup complete"
+
+# Serve token for worker with http server
+echo "Initalizing server to give token"
+cp /var/lib/rancher/k3s/server/node-token /vagrant/token
+cd /vagrant
+chmod +r token
+python3 -m http.server 80
