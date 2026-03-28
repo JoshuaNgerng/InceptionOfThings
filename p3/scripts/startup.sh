@@ -13,7 +13,10 @@ done
 
 echo "K3d is ready."
 
+echo "Create cluster for p3"
+
 k3d cluster create p3 -p "8888:8888@loadbalancer" -p "8080:80@loadbalancer"
+kubectl config use-context p3
 
 echo "Creating namespace..."
 # 1. Namespace (already done)
@@ -39,7 +42,6 @@ echo "Deployment finished."
 
 echo "Cluster status:"
 kubectl get nodes
-kubectl config use-context p3
 
 echo "Services:"
 kubectl get svc -n apps

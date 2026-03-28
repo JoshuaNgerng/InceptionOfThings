@@ -1,21 +1,11 @@
 #!/bin/bash
 
+#!/bin/bash
+
 set -e
 
-echo "Updating system..."
-apt-get update -y
-
-echo "Installing curl..."
-apt-get install -y curl
-
-echo "Installing K3s..."
-curl -sfL https://get.k3s.io | sh -
-
-echo "Waiting for K3s to start..."
-sleep 10
-
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-
+# $(k3d kubeconfig write mycluster)
 
 # Wait until node is ready
 until kubectl get node >/dev/null 2>&1; do
@@ -23,41 +13,43 @@ until kubectl get node >/dev/null 2>&1; do
   sleep 5
 done
 
-echo "K3s is ready."
+echo "K3d is ready."
+
+echo "Create cluster for bonus"
+
+kubectl config use-context bonus
 
 echo "Creating namespace..."
-# 1. Namespace (already done)
+# 2. Namespace (already done)
 kubectl create namespace apps || true
 
-# 2. Config (if using)
-kubectl apply -f ./configs/configmap.yaml
+# 3. Config  
+kubectl apply -f ./confs/configmap.yaml
 # if have secret
-# kubectl apply -f /vagrant/configs/secret.yaml
+# kubectl apply -f /vagrant/confs/secret.yaml
 
-
-# 3. Postgres (StatefulSet)
-kubectl apply -f ./configs/postgres-service.yaml
-kubectl apply -f ./configs/postgres-statefulset.yaml
+# 4. Postgres (StatefulSet)
+kubectl apply -f ./confs/postgres-service.yaml
+kubectl apply -f ./confs/postgres-statefulset.yaml
 kubectl rollout status statefulset/postgres -n apps --timeout=120s
 
-# 4. Redis 
-kubectl apply -f ./configs/redis-deployment.yaml
+# 5. Redis 
+kubectl apply -f ./confs/redis-deployment.yaml
 kubectl wait --for=condition=available deployment/redis -n apps --timeout=120s
 
-# 5. Services (so apps can connect)
-kubectl apply -f ./configs/services.yaml
+# 6. Services (so apps can connect)
+kubectl apply -f ./confs/services.yaml
 
-# 6. Application LAST
-kubectl apply -f ./configs/gitlab-deployment.yaml
+# 7. Application LAST
+kubectl apply -f ./confs/gitlab-deployment.yaml
 
-# 7. Ingress (optional, after service works)
-kubectl apply -f ./configs/ingress.yaml
+# 8. Ingress (optional, after service works)
+kubectl apply -f ./confs/ingress.yaml
 
 echo "Deployment finished."
 
 echo "Cluster status:"
 kubectl get nodes
-kubectl config use-context bonus
 
 echo "Services:"
 kubectl get svc -n apps

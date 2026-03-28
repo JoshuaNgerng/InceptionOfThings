@@ -30,13 +30,13 @@ kubectl create namespace apps || true
 
 echo "Applying Kubernetes manifests..."
 
-kubectl apply -f /vagrant/configs/app1-deployment.yaml
-kubectl apply -f /vagrant/configs/app2-deployment.yaml
-kubectl apply -f /vagrant/configs/app3-deployment.yaml
+kubectl apply -f /vagrant/confs/app1-deployment.yaml
+kubectl apply -f /vagrant/confs/app2-deployment.yaml
+kubectl apply -f /vagrant/confs/app3-deployment.yaml
 
-kubectl apply -f /vagrant/configs/services.yaml
+kubectl apply -f /vagrant/confs/services.yaml
 
-kubectl apply -f /vagrant/configs/ingress.yaml
+kubectl apply -f /vagrant/confs/ingress.yaml
 
 echo "Deployment finished."
 
