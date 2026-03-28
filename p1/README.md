@@ -218,6 +218,42 @@ Worker:
 192.168.56.111
 ```
 
+## How worker get kubctl token for connection to server
+
+Server have a systemd setup to give the token to any vm in the network
+Systemd is used because it is the init system, and always runs whenever the kernel is booted
+It is a long life process and does get shutdown after provisioning is done
+
+common type of systemd process:
+
+service → long-running processes (what you need)
+target → groups of services (like runlevels)
+mount → filesystems
+socket → network sockets
+
+understanding config 
+
+```
+[Unit]
+* metadata + dependencies
+Description (just a label)
+After (specfiy it starts after XX here is after network is up)
+
+[Service]
+* how your app runs
+ExecStar (what do exec here need full path)
+WorkingDirectory (which dir to run the cmd in)
+Restart (restart when fail ? no, on-failure or always)
+User (run with what user perm)
+
+[Install]
+* startup behavior
+WantedBy (link my service to a specific target so it starts when that target is reached)
+# here we choose multi-user.target
+# cause we only need cli base users and no need anything related to graphical (etc X, GDM)
+
+```
+
 ## Notes
 
 - kubectl is configured only on the Server node

@@ -2,7 +2,7 @@
 set -eux
 
 apt-get update
-apt-get install -y curl
+apt-get install -y curl python3
 
 # Install K3s server with kubeconfig readable by all users
 curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
