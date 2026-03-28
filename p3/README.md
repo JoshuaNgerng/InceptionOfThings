@@ -31,7 +31,7 @@ Once the dependencies are installed, create the K3d cluster. We map port 8888 fo
 
 1. Create the cluster:
    ```bash
-   k3d cluster create inception-cluster -p "8888:8888@loadbalancer" -p "8080:80@loadbalancer"
+   k3d cluster create p3 -p "8888:8888@loadbalancer" -p "8080:80@loadbalancer"
    ```
 2. Create the required namespaces for logical isolation:
    ```bash
