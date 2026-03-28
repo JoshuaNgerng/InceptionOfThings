@@ -12,7 +12,7 @@ until curl -s "$URL" > /dev/null; do
   sleep 2
 done
 
-TOKEN=$(wget "$URL/token")
+TOKEN=$(curl "$URL/token")
 
 echo "got token $TOKEN"
 
