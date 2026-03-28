@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: apps
+  namespace: gitlab 
 data:
   DB_HOST: postgres
   REDIS_HOST: redis

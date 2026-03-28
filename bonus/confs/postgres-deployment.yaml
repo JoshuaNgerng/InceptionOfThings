@@ -2,7 +2,7 @@ apiVersion: apps/v1 # deployment not use in favour of statefulset
 kind: Deployment
 metadata:
   name: postgres
-  namespace: apps
+  namespace: gitlab 
 spec:
   replicas: 1
   selector:

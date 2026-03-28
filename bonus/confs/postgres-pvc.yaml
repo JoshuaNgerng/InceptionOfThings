@@ -2,7 +2,7 @@ apiVersion: v1 # not use since statefulset have its own pvc per pod
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: apps
+  namespace: gitlab 
 spec:
   accessModes:
     - ReadWriteOnce

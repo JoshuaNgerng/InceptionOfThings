@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gitlab-ingress
-  namespace: apps
+  namespace: gitlab 
 spec:
   rules:
     - host: gitlab.local
