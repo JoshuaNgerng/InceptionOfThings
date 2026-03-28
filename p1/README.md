@@ -180,6 +180,7 @@ sudo systemctl status k3s-agent
 View logs:
 ```
 sudo journalctl -u k3s-agent
+sudo journalctl -u k3s-agent | grep  registered 
 ```
 
 ## Stopping the Cluster
