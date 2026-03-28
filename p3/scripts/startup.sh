@@ -2,44 +2,53 @@
 
 set -e
 
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-# $(k3d kubeconfig write mycluster)
+# 1. Cluster Creation
+# k3d context is usually prefixed with 'k3d-'
+k3d cluster create p3 -p "8888:8888@loadbalancer" -p "8080:80@loadbalancer" || echo "Cluster already exists, skipping..."
+kubectl config use-context k3d-p3
 
-echo "Create cluster for p3"
+echo "Creating namespaces..."
+kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
 
-k3d cluster create p3 -p "8888:8888@loadbalancer" -p "8080:80@loadbalancer"
-kubectl config use-context p3
+# 2. Install ArgoCD
+echo "Installing ArgoCD..."
+# Removed --server-side to avoid the metadata length error
+kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml || \
+kubectl replace -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-echo "Creating namespace..."
-# 1. Namespace (already done)
-kubectl create namespace argocd || true
-kubectl create namespace dev || true
-
-# 2. Config ArgoCD
-kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-# Wait for CRDs first (ensure API server reconginze new argocd resource is being resigtered) 
+echo "Waiting for ArgoCD CRDs..."
 kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=60s
-# Then ensure deployments are rolled out
-kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
-kubectl rollout status deployment/argocd-repo-server -n argocd --timeout=300s
-kubectl rollout status deployment/argocd-application-controller -n argocd --timeout=300s
-# final port forwarding to access on local broswer
-kubectl port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8443:443
 
-# 3. Config dev 
-kubectl apply -f ./confs/application.yaml
-kubectl wait --for=condition=available deployment/iot-playground -n dev --timeout=120s
+# 3. Config dev (Argo Application)
+echo "Applying ArgoCD Application Manifest..."
+kubectl apply -f ../confs/application.yaml
 
-echo "Deployment finished."
+# 4. Wait loop for ArgoCD Application to be Ready
+# This ensures everything is Ready before we create the tunnel and show credentials
+echo "Waiting for all pods in 'argocd' namespaces to be Ready..."
 
-echo "Cluster status:"
+# Wait for ArgoCD Core
+kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+
+echo "Pods are ready."
+
+# 5. Final Diagnostics
+echo "--- Cluster Status ---"
 kubectl get nodes
+echo "--- Pods ---"
+kubectl get pods -n argocd -o wide
 
-echo "Services:"
-kubectl get svc -n apps
+# 6. Credentials and Foreground Tunnel
+echo "---------------------------------------------------"
+echo "ArgoCD Admin Password:"
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+echo "---------------------------------------------------"
 
-echo "PVC:"
-kubectl get pvc -n apps
+echo "Starting Port-forward (FOREGROUND)..."
+echo "URL: https://<your-host>:8443 (Use 'admin' + password above)"
+echo "Press Ctrl+C to stop the tunnel and exit the script."
+echo "---------------------------------------------------"
 
-echo "Pods:"
-kubectl get pods -n apps -o wide
+# This command stays in the foreground and blocks the script from exiting
+kubectl port-forward --address 0.0.0.0 svc/argocd-server -n argocd 8443:443

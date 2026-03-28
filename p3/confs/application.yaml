@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/exellaz/42-iot-app.git'
+    repoURL: 'https://github.com/exellaz/kkhai-ki.git'
     targetRevision: HEAD
     path: .
   destination:
