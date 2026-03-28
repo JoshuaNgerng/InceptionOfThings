@@ -14,7 +14,7 @@ done
 
 TOKEN=$(wget "$URL/token")
 
-cat $TOKEN
+echo "got token $TOKEN"
 
 echo "Waiting for Kubernetes API..."
 
