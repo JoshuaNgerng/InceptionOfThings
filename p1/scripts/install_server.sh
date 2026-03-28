@@ -34,3 +34,4 @@ sudo chmod +r
 sudo systemctl daemon-reload
 sudo systemctl enable simple-http
 sudo systemctl start simple-http
+echo "done all server provisioning"
