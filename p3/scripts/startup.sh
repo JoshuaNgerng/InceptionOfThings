@@ -22,7 +22,7 @@ kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=
 
 # 3. Config dev (Argo Application)
 echo "Applying ArgoCD Application Manifest..."
-kubectl apply -f ../confs/application.yaml
+kubectl apply -f ./confs/application.yaml
 
 # 4. Wait loop for ArgoCD Application to be Ready
 # This ensures everything is Ready before we create the tunnel and show credentials

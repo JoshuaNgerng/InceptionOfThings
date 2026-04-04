@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gitlab
-  namespace: gitlab 
+  namespace: gitlab
 spec:
   replicas: 1
   selector:
@@ -13,19 +13,55 @@ spec:
       labels:
         app: gitlab
     spec:
+      volumes:
+        - name: postgres-password
+          secret:
+            secretName: app-secret
+            defaultMode: 0440
       containers:
         - name: gitlab
           image: gitlab/gitlab-ce:latest
           ports:
-            - containerPort: 80
+            # Must match the port in external_url; Omnibus nginx listens there, not 80.
+            - containerPort: 8000
+              name: http
+          volumeMounts:
+            - name: postgres-password
+              mountPath: /run/secrets/gitlab
+              readOnly: true
           env:
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: DB_HOST
-            - name: REDIS_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: REDIS_HOST
+            - name: GITLAB_OMNIBUS_CONFIG
+              value: |
+                external_url 'http://gitlab.local:8000'
+                postgresql['enable'] = false
+                redis['enable'] = false
+                prometheus_monitoring['enable'] = false
+                alertmanager['enable'] = false
+                registry['enable'] = false
+                gitlab_rails['registry_enabled'] = false
+                gitlab_rails['db_adapter'] = 'postgresql'
+                gitlab_rails['db_encoding'] = 'unicode'
+                gitlab_rails['db_host'] = 'postgres'
+                gitlab_rails['db_port'] = 5432
+                gitlab_rails['db_username'] = 'gitlab'
+                gitlab_rails['db_password'] = File.read('/run/secrets/gitlab/POSTGRES_PASSWORD').strip
+                gitlab_rails['db_database'] = 'gitlab'
+                gitlab_rails['redis_host'] = 'redis'
+                gitlab_rails['redis_port'] = 6379
+                puma['worker_processes'] = 2
+                sidekiq['max_concurrency'] = 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 180
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 60
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 2.5Gi
+            limits:
+              cpu: "2"
+              memory: 5Gi
