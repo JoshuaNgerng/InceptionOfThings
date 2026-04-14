@@ -22,7 +22,8 @@ spec:
             defaultMode: 0440
       containers:
         - name: gitlab
-          image: gitlab/gitlab-ce:latest
+          # Pinned tag keeps bootstrap behavior predictable on constrained dev VMs.
+          image: gitlab/gitlab-ce:17.11.0-ce.0
           ports:
             # Must match the port in external_url; Omnibus nginx listens there, not 80.
             - containerPort: 8000
@@ -32,11 +33,6 @@ spec:
               mountPath: /run/secrets/gitlab
               readOnly: true
           env:
-            - name: GITLAB_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: app-secret
-                  key: GITLAB_ROOT_PASSWORD
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
                 external_url 'http://gitlab.local:8000'
@@ -46,7 +42,6 @@ spec:
                 alertmanager['enable'] = false
                 registry['enable'] = false
                 gitlab_rails['registry_enabled'] = false
-                gitlab_rails['initial_root_password'] = File.read('/run/secrets/gitlab/GITLAB_ROOT_PASSWORD').strip
                 gitlab_rails['db_adapter'] = 'postgresql'
                 gitlab_rails['db_encoding'] = 'unicode'
                 gitlab_rails['db_host'] = 'postgres'
@@ -56,20 +51,27 @@ spec:
                 gitlab_rails['db_database'] = 'gitlab'
                 gitlab_rails['redis_host'] = 'redis'
                 gitlab_rails['redis_port'] = 6379
-                puma['worker_processes'] = 2
-                sidekiq['max_concurrency'] = 10
+                puma['worker_processes'] = 1
+                sidekiq['max_concurrency'] = 5
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /
               port: http
-            initialDelaySeconds: 180
-            periodSeconds: 15
+            initialDelaySeconds: 30
+            periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 60
+            failureThreshold: 18
           resources:
             requests:
-              cpu: "500m"
-              memory: 2.5Gi
+              cpu: "1200m"
+              memory: 2Gi
             limits:
               cpu: "2"
-              memory: 5Gi
+              memory: 3Gi
