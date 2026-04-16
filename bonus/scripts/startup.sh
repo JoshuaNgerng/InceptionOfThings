@@ -7,8 +7,6 @@ cd "$(dirname "$0")/.."
 # k3d writes kubeconfig to ~/.kube/config; context name is k3d-<clustername>
 # 8GB VM tuning: reserve some RAM for the host, split cluster across server+agent.
 k3d cluster create bonus \
-  --servers 1 --agents 1 \
-  --servers-memory 3584m --agents-memory 2560m \
   -p "8000:80@loadbalancer" || echo "Cluster already exists, skipping..."
 kubectl config use-context k3d-bonus
 
