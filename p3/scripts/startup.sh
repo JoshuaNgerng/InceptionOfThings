@@ -20,6 +20,17 @@ kubectl replace -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/
 echo "Waiting for ArgoCD CRDs..."
 kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=60s
 
+# 2b. Needed when repo-server clones http://gitlab.local:8000/... from a sibling k3d cluster on the same Docker host.
+# Override IP if docker0 is not 172.17.0.1 on your machine.
+: "${GITLAB_LOCAL_BRIDGE_IP:=172.17.0.1}"
+echo "Patching argocd-repo-server hostAliases (gitlab.local → ${GITLAB_LOCAL_BRIDGE_IP})..."
+kubectl wait --for=condition=Available deployment/argocd-repo-server -n argocd --timeout=300s
+kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p \
+  '{"data":{"reposerver.allow.insecure.git.repos":"true"}}'
+kubectl patch deployment argocd-repo-server -n argocd --type strategic -p \
+  "{\"spec\":{\"template\":{\"spec\":{\"hostAliases\":[{\"ip\":\"${GITLAB_LOCAL_BRIDGE_IP}\",\"hostnames\":[\"gitlab.local\"]}]}}}}"
+kubectl rollout status deployment/argocd-repo-server -n argocd --timeout=300s
+
 # 3. Config dev (Argo Application)
 echo "Applying ArgoCD Application Manifest..."
 kubectl apply -f ./confs/application.yaml
